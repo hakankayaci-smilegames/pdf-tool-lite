@@ -23,6 +23,7 @@
 ## 🌟 Key Features
 
 ### 1. ✂️ Page Splitter & Organizer
+- **Centralized Master PDF:** Load your document once from the top header bar; it automatically populates across Splitter, Organizer, Exporter, and Metadata tools.
 - **Instant Preview (Thumbnail Grid):** View your PDF pages as visual thumbnail cards.
 - **Precision Reordering:** Rearrange pages instantly and flawlessly using `Ctrl + Left/Right` keyboard shortcuts (or right-click menu). Press `Delete` to quickly drop unwanted pages.
 - **Smart Range Input:** Split pages in seconds using commands like `1-3, 5, 8` or keywords like `odd` and `even`.
@@ -40,12 +41,12 @@
 
 ## 📦 Stand-Alone Executables (No Python Required)
 
-You do **not** need Python installed on your system! Grab the pre-built single-file binary for your OS directly from the [Releases](https://github.com/KULLANICI_ADINIZ/pdf-tool-lite/releases) page:
+You do **not** need Python installed on your system! Grab the pre-built single-file binary for your OS directly from the [Releases](https://github.com/hakankayaci-smilegames/pdf-tool-lite/releases) page:
 
 | OS | Download | Instructions |
 |---|---|---|
 | **Windows** | `PDF-Tool-Lite-Windows.exe` | Download and double-click to run! |
-| **Linux** | `PDF-Tool-Lite-Linux-x86_64.AppImage` | `chmod +x PDF-Tool-Lite-Linux-x86_64.AppImage` and double-click. |
+| **Linux** | `PDF-Tool-Lite-Linux-x86_64.AppImage`<br>`PDF-Tool-Lite-Linux` | `chmod +x` and run standalone binary or AppImage. |
 | **macOS** | `PDF-Tool-Lite-macOS.zip` | Unzip the file and launch the `pdf-tool-lite.app`. |
 
 ---
@@ -54,7 +55,7 @@ You do **not** need Python installed on your system! Grab the pre-built single-f
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/KULLANICI_ADINIZ/pdf-tool-lite.git
+git clone https://github.com/hakankayaci-smilegames/pdf-tool-lite.git
 cd pdf-tool-lite
 ```
 
