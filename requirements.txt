@@ -1,0 +1,4 @@
+PyQt6>=6.6.0
+PyQt6-Qt6>=6.6.0
+pikepdf>=8.13.0
+PyMuPDF>=1.23.0
