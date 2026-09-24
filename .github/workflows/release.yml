@@ -1,26 +1,33 @@
-name: Release Builds
+name: Release Multiplatform Binaries
 
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            artifact_name: PDF-Tool-Lite-Linux
-            executable: pdf-tool-lite
           - os: windows-latest
             artifact_name: PDF-Tool-Lite-Windows.exe
-            executable: pdf-tool-lite.exe
+            asset_path: dist/PDF-Tool-Lite-Windows.exe
+          - os: ubuntu-latest
+            artifact_name: PDF-Tool-Lite-Linux-x86_64.AppImage
+            asset_path: |
+              dist/PDF-Tool-Lite-Linux
+              dist/PDF-Tool-Lite-Linux-x86_64.AppImage
           - os: macos-latest
-            artifact_name: PDF-Tool-Lite-macOS
-            executable: pdf-tool-lite
+            artifact_name: PDF-Tool-Lite-macOS.zip
+            asset_path: dist/PDF-Tool-Lite-macOS.zip
 
     steps:
       - name: Checkout repository
@@ -44,25 +51,25 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller
 
-      - name: Build with PyInstaller (Windows / Linux)
-        if: runner.os != 'macOS'
+      # Build Windows
+      - name: Build Windows Executable
+        if: runner.os == 'Windows'
         run: |
-          pyinstaller --noconfirm --onefile --windowed --name "${{ matrix.executable }}" "src/main.py"
+          pyinstaller --noconfirm --onefile --windowed --paths . --name "PDF-Tool-Lite-Windows" src/main.py
 
-      - name: Build with PyInstaller (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          pyinstaller --noconfirm --onedir --windowed --name "${{ matrix.executable }}" "src/main.py"
-          cd dist
-          zip -r PDF-Tool-Lite-macOS.zip "${{ matrix.executable }}.app"
-
-      - name: Package Linux AppImage
+      # Build Linux
+      - name: Build Linux Binary & AppImage
         if: runner.os == 'Linux'
         run: |
+          # 1. Standalone Binary derle
+          pyinstaller --noconfirm --onefile --windowed --paths . --name "PDF-Tool-Lite-Linux" src/main.py
+          chmod +x dist/PDF-Tool-Lite-Linux
+
+          # 2. AppImage Paketle
           mkdir -p AppDir/usr/bin
-          cp dist/pdf-tool-lite AppDir/usr/bin/
+          cp dist/PDF-Tool-Lite-Linux AppDir/usr/bin/pdf-tool-lite
           
-          # Create Desktop Entry
+          # Desktop Entry
           cat <<EOF > AppDir/pdf-tool-lite.desktop
           [Desktop Entry]
           Name=PDF Tool Lite
@@ -72,10 +79,11 @@ jobs:
           Categories=Utility;Office;
           EOF
           
-          # Create Dummy Icon
-          touch AppDir/pdf-tool-lite.png
+          # İkon kopyala
+          cp assets/icon.png AppDir/pdf-tool-lite.png
+          cp assets/icon.png AppDir/.DirIcon
           
-          # Create AppRun script
+          # AppRun script
           cat <<EOF > AppDir/AppRun
           #!/bin/sh
           HERE="\$(dirname "\$(readlink -f "\${0}")")"
@@ -83,17 +91,23 @@ jobs:
           EOF
           chmod +x AppDir/AppRun
           
-          # Download appimagetool and build
-          wget -c https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          # appimagetool indir ve çalıştır
+          wget -q -c https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool-x86_64.AppImage
-          ./appimagetool-x86_64.AppImage --appimage-extract-and-run AppDir PDF-Tool-Lite-Linux-x86_64.AppImage
+          ARCH=x86_64 ./appimagetool-x86_64.AppImage --appimage-extract-and-run AppDir dist/PDF-Tool-Lite-Linux-x86_64.AppImage
 
-      - name: Upload Release Artifacts
+      # Build macOS
+      - name: Build macOS App
+        if: runner.os == 'macOS'
+        run: |
+          pyinstaller --noconfirm --onedir --windowed --paths . --name "PDF-Tool-Lite" src/main.py
+          cd dist && zip -r PDF-Tool-Lite-macOS.zip PDF-Tool-Lite.app
+
+      # Publish Assets to GitHub Release
+      - name: Publish Release Assets
         uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
         with:
-          files: |
-            dist/${{ matrix.executable }}*
-            PDF-Tool-Lite-Linux-x86_64.AppImage
-            dist/PDF-Tool-Lite-macOS.zip
+          files: ${{ matrix.asset_path }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
