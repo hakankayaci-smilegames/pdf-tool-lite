@@ -3,7 +3,6 @@ import locale
 class I18n:
     def __init__(self):
         self.lang = "en"
-        # İşletim sistemi dilini alıp Türkçeyse varsayılanı TR yapıyoruz
         try:
             sys_loc = locale.getdefaultlocale()[0]
             if sys_loc and sys_loc.startswith("tr"):
@@ -26,14 +25,21 @@ class I18n:
                 "merge_save": "Birleştir ve Kaydet",
                 "export_images": "Görsel Olarak Aktar",
                 "ready": "Hazır",
-                "loading": "Yükleniyor...",
+                "loading": "İşleniyor...",
                 "saved": "Başarıyla kaydedildi!",
                 "error": "Hata oluştu",
                 "select_pages": "Aralık Seç (örn: 1-5, 8, tek):",
-                "no_file": "Dosya yüklenmedi",
+                "no_file": "Dosya yüklenmedi (PDF sürükleyip bırakabilirsiniz)",
                 "pages": "Sayfa",
                 "files": "Dosya",
-                "delete": "Sil",
+                "delete": "Sil (Delete)",
+                "move_left": "Sola Taşı (Ctrl+Sol)",
+                "move_right": "Sağa Taşı (Ctrl+Sağ)",
+                "rotate_cw": "90° Sağa Döndür (CW)",
+                "rotate_ccw": "90° Sola Döndür (CCW)",
+                "wipe_metadata": "Tüm Meta Verileri Temizle",
+                "move_up": "Yukarı Taşı",
+                "move_down": "Aşağı Taşı",
                 "success": "İşlem Başarılı"
             },
             "en": {
@@ -50,14 +56,21 @@ class I18n:
                 "merge_save": "Merge & Save",
                 "export_images": "Export as Images",
                 "ready": "Ready",
-                "loading": "Loading...",
+                "loading": "Processing...",
                 "saved": "Successfully saved!",
                 "error": "Error occurred",
                 "select_pages": "Range (e.g. 1-5, 8, odd):",
-                "no_file": "No file loaded",
+                "no_file": "No file loaded (Drag & drop PDF here)",
                 "pages": "Pages",
                 "files": "Files",
-                "delete": "Delete",
+                "delete": "Delete (Delete)",
+                "move_left": "Move Left (Ctrl+Left)",
+                "move_right": "Move Right (Ctrl+Right)",
+                "rotate_cw": "Rotate 90° Clockwise",
+                "rotate_ccw": "Rotate 90° Counter-Clockwise",
+                "wipe_metadata": "Wipe All Metadata",
+                "move_up": "Move Up",
+                "move_down": "Move Down",
                 "success": "Success"
             }
         }

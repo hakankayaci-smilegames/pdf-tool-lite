@@ -1,14 +1,14 @@
 import os
 import fitz  # PyMuPDF
 from PyQt6.QtWidgets import QListWidget, QListWidgetItem, QAbstractItemView, QMenu
-from PyQt6.QtGui import QPixmap, QImage, QIcon, QAction
+from PyQt6.QtGui import QPixmap, QImage, QIcon, QAction, QTransform
 from PyQt6.QtCore import Qt, QSize, pyqtSignal
 from src.core.i18n import trans
 
 class ThumbnailGrid(QListWidget):
     """
     PDF sayfalarını küçük resim olarak listeleyen bileşen.
-    Sürükle-bırak hatalarını önlemek için Klavye ve Sağ Tık destekli sıralama sunar.
+    Sayfa döndürme (90° Sağa/Sola), Klavye kısayolları ve hassas seçim destekler.
     """
     order_changed = pyqtSignal()
     pages_deleted = pyqtSignal(list)
@@ -23,7 +23,6 @@ class ThumbnailGrid(QListWidget):
         self.setIconSize(QSize(150, 200))
         self.setResizeMode(QListWidget.ResizeMode.Adjust)
         self.setSpacing(15)
-        # Serbest hareketi kapatıyoruz, ızgara mükemmel hizalanacak
         self.setMovement(QListWidget.Movement.Static)
         self.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
@@ -49,7 +48,11 @@ class ThumbnailGrid(QListWidget):
             item.setIcon(QIcon(qpixmap))
             item.setText(f"{trans.t('pages')} {page_num + 1}")
             item.setTextAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom)
+            
+            # UserRole: Orijinal sayfa indeksi
             item.setData(Qt.ItemDataRole.UserRole, page_num)
+            # UserRole + 1: Birikimli dönüş açısı (0, 90, 180, 270)
+            item.setData(Qt.ItemDataRole.UserRole + 1, 0)
             
             self.addItem(item)
 
@@ -57,15 +60,26 @@ class ThumbnailGrid(QListWidget):
         if not self.selectedItems():
             return
             
-        menu = QMenu()
+        menu = QMenu(self)
         
-        # Sadece tekli seçimde kaydırma izni
+        # Döndürme aksiyonları (Tüm seçili sayfaları döndürebilir)
+        act_rot_cw = QAction(trans.t("rotate_cw"), self)
+        act_rot_cw.triggered.connect(lambda: self.rotate_selected(90))
+        menu.addAction(act_rot_cw)
+        
+        act_rot_ccw = QAction(trans.t("rotate_ccw"), self)
+        act_rot_ccw.triggered.connect(lambda: self.rotate_selected(-90))
+        menu.addAction(act_rot_ccw)
+        
+        menu.addSeparator()
+
+        # Sıralama aksiyonları
         if len(self.selectedItems()) == 1:
-            action_left = QAction("Sola Taşı (Ctrl+Sol)", self)
+            action_left = QAction(trans.t("move_left"), self)
             action_left.triggered.connect(self._move_left)
             menu.addAction(action_left)
             
-            action_right = QAction("Sağa Taşı (Ctrl+Sağ)", self)
+            action_right = QAction(trans.t("move_right"), self)
             action_right.triggered.connect(self._move_right)
             menu.addAction(action_right)
             
@@ -76,6 +90,21 @@ class ThumbnailGrid(QListWidget):
         menu.addAction(delete_action)
         
         menu.exec(self.mapToGlobal(position))
+
+    def rotate_selected(self, degrees: int):
+        """Seçili sayfaları verilen derece kadar saat yönünde/tersinde döndürür."""
+        for item in self.selectedItems():
+            current_rot = item.data(Qt.ItemDataRole.UserRole + 1) or 0
+            new_rot = (current_rot + degrees) % 360
+            item.setData(Qt.ItemDataRole.UserRole + 1, new_rot)
+            
+            # İkonu döndür
+            current_pixmap = item.icon().pixmap(QSize(200, 200))
+            transform = QTransform().rotate(degrees)
+            rotated_pixmap = current_pixmap.transformed(transform, Qt.TransformationMode.SmoothTransformation)
+            item.setIcon(QIcon(rotated_pixmap))
+            
+        self.order_changed.emit()
 
     def _move_left(self):
         row = self.currentRow()
@@ -114,11 +143,18 @@ class ThumbnailGrid(QListWidget):
                 self._move_left()
             elif event.key() == Qt.Key.Key_Right:
                 self._move_right()
+            elif event.key() == Qt.Key.Key_R:
+                self.rotate_selected(90)
         else:
             super().keyPressEvent(event)
 
     def get_current_order(self) -> list[int]:
+        """Güncel dizilimdeki sayfaların orijinal indekslerini listeler."""
         return [self.item(i).data(Qt.ItemDataRole.UserRole) for i in range(self.count())]
+
+    def get_item_rotations(self) -> list[int]:
+        """Güncel dizilimdeki sayfaların dönüş açılarını listeler."""
+        return [self.item(i).data(Qt.ItemDataRole.UserRole + 1) or 0 for i in range(self.count())]
 
     def closeEvent(self, event):
         if self.pdf_document:

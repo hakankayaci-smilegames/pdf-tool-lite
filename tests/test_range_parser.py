@@ -31,3 +31,11 @@ def test_parse_invalid_input():
 def test_parse_unordered_and_duplicates():
     # Hem gereksiz tekrarları temizlemeli, hem de sıralamalı
     assert parse_range_string("5, 1, 3-3, 1-2", 10) == [0, 1, 2, 4]
+
+def test_indices_to_range_string():
+    from src.core.splitter import indices_to_range_string
+    assert indices_to_range_string([]) == ""
+    assert indices_to_range_string([0]) == "1"
+    assert indices_to_range_string([0, 1, 2]) == "1-3"
+    assert indices_to_range_string([0, 1, 2, 4, 6, 7]) == "1-3, 5, 7-8"
+    assert indices_to_range_string([4, 1, 2, 0]) == "1-3, 5"

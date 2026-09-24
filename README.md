@@ -23,19 +23,19 @@
 ## 🌟 Key Features
 
 ### 1. ✂️ Page Splitter & Organizer
-- **Centralized Master PDF:** Load your document once from the top header bar; it automatically populates across Splitter, Organizer, Exporter, and Metadata tools.
-- **Instant Preview (Thumbnail Grid):** View your PDF pages as visual thumbnail cards.
-- **Precision Reordering:** Rearrange pages instantly and flawlessly using `Ctrl + Left/Right` keyboard shortcuts (or right-click menu). Press `Delete` to quickly drop unwanted pages.
-- **Smart Range Input:** Split pages in seconds using commands like `1-3, 5, 8` or keywords like `odd` and `even`.
+- **Centralized Master PDF & OS Drag-and-Drop:** Drop any PDF file from your desktop directly onto the application window or open it via the header bar to immediately sync across all tools.
+- **Bidirectional Synchronization:** Select pages visually with your mouse, and the range input automatically types `1-3, 5`. Alternatively, type keywords like `odd`, `even`, or `1-4` to instantly highlight pages on the grid.
+- **Lossless Page Rotation:** Right-click any page (or press `Ctrl+R`) to rotate 90° Clockwise or Counter-Clockwise. Rotations are saved losslessly.
+- **Precision Reordering:** Rearrange pages instantly using `Ctrl + Left/Right` keyboard shortcuts (or right-click menu). Press `Delete` to quickly drop unwanted pages.
 
 ### 2. 🗜️ Multi-File Merger
-- **Fast & Lossless:** Drop dozens of PDFs into the pool. Rearrange them to your desired order and merge them into a single file with one click.
+- **Fast & Lossless:** Drag and drop dozens of PDFs into the pool from your file manager. Reorder with intuitive ▲/▼ buttons or list dragging, then merge into a single file with one click.
 
 ### 3. 🖼️ High-Res Image Exporter
 - **Custom DPI Exports:** Save selected pages losslessly as high-quality PNGs (default 300 DPI). Perfect for academic papers, presentations, and design mockups.
 
 ### 4. 🕵️ Privacy: Metadata Manager
-- **Leave No Trace:** View, modify, or completely wipe embedded digital footprints in your PDFs (such as "Author", "Title", "Creator", etc.) from a single intuitive screen.
+- **Leave No Trace:** View, modify, or click **"Wipe All Metadata" (🧹)** to completely erase digital footprints (Author, Title, Creator, Producer) from your documents in a single click.
 
 ---
 

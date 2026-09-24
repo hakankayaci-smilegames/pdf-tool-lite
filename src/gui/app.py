@@ -16,8 +16,9 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle(trans.t("app_title"))
-        self.resize(1100, 700)
+        self.resize(1150, 720)
         
+        self.setAcceptDrops(True)
         self.is_dark_mode = True
         self.setStyleSheet(get_stylesheet(self.is_dark_mode))
         
@@ -58,9 +59,9 @@ class MainWindow(QMainWindow):
         self.btn_theme.clicked.connect(self._toggle_theme)
         
         top_layout.addWidget(self.lbl_title)
-        top_layout.addSpacing(40)
+        top_layout.addSpacing(30)
         top_layout.addWidget(self.btn_load_global)
-        top_layout.addSpacing(20)
+        top_layout.addSpacing(15)
         top_layout.addWidget(self.lbl_active_file)
         top_layout.addStretch()
         top_layout.addWidget(self.btn_theme)
@@ -97,21 +98,68 @@ class MainWindow(QMainWindow):
     def set_status(self, msg: str):
         self.statusBar().showMessage(msg)
         
+    def _load_pdf_path(self, file_path: str):
+        """Merkezi PDF dosyasını yükler ve tüm ilgili modüllere iletir."""
+        if not file_path or not os.path.exists(file_path):
+            return
+            
+        try:
+            self.current_global_pdf = file_path
+            self.lbl_active_file.setText(f"📄 {os.path.basename(file_path)}")
+            for key, view in self.views.items():
+                if hasattr(view, "set_pdf"):
+                    view.set_pdf(file_path)
+            self.set_status(trans.t("ready"))
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            from PyQt6.QtWidgets import QMessageBox
+            QMessageBox.critical(self, trans.t("error"), f"PDF okunamadı:\n{str(e)}")
+
     def _load_global_pdf(self):
         file_path, _ = QFileDialog.getOpenFileName(self, trans.t("load_pdf"), "", "PDF (*.pdf)")
         if file_path:
-            try:
-                self.current_global_pdf = file_path
-                self.lbl_active_file.setText(f"Aktif: {os.path.basename(file_path)}")
-                for key, view in self.views.items():
-                    if hasattr(view, "set_pdf"):
-                        view.set_pdf(file_path)
-                self.set_status(trans.t("ready"))
-            except Exception as e:
-                import traceback
-                traceback.print_exc()
-                from PyQt6.QtWidgets import QMessageBox
-                QMessageBox.critical(self, trans.t("error"), f"PDF okunamadı:\n{str(e)}")
+            self._load_pdf_path(file_path)
+
+    def dragEnterEvent(self, event):
+        """Masaüstünden dosya sürüklendiğinde kabul eder."""
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+        else:
+            super().dragEnterEvent(event)
+
+    def dragMoveEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+        else:
+            super().dragMoveEvent(event)
+
+    def dropEvent(self, event):
+        """Masaüstünden bırakılan PDF dosyasını anında açar."""
+        if event.mimeData().hasUrls():
+            urls = event.mimeData().urls()
+            # Eğer Birleştirici (Merger) sekmesindeysek dosyaları oraya yolla
+            if self.stack.currentIndex() == 1:
+                merger_view = self.views["merger"]
+                for url in urls:
+                    f = url.toLocalFile()
+                    if f.lower().endswith(".pdf") and os.path.exists(f):
+                        from PyQt6.QtWidgets import QListWidgetItem
+                        item = QListWidgetItem(f"📄 {os.path.basename(f)}")
+                        item.setToolTip(f)
+                        item.setData(Qt.ItemDataRole.UserRole, f)
+                        merger_view.list_widget.addItem(item)
+                merger_view._update_ui()
+                event.acceptProposedAction()
+                return
+
+            # Diğer sekmelerde ilk PDF'i merkezi olarak yükle
+            for url in urls:
+                f = url.toLocalFile()
+                if f.lower().endswith(".pdf") and os.path.exists(f):
+                    self._load_pdf_path(f)
+                    event.acceptProposedAction()
+                    break
 
     def _switch_module(self, module_id: str):
         mapping = {"splitter": 0, "merger": 1, "organizer": 2, "to_image": 3, "metadata": 4}

@@ -1,6 +1,6 @@
 import os
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, 
-                             QLabel, QFileDialog, QMessageBox)
+                             QLabel, QFileDialog, QMessageBox, QApplication)
 from src.gui.components.thumbnail_grid import ThumbnailGrid
 from src.core.splitter import split_pdf
 from src.core.i18n import trans
@@ -20,7 +20,7 @@ class OrganizerView(QWidget):
         layout.addWidget(self.grid)
         
         right_panel = QWidget()
-        right_panel.setFixedWidth(250)
+        right_panel.setFixedWidth(260)
         right_layout = QVBoxLayout(right_panel)
         right_layout.setContentsMargins(15, 0, 0, 0)
         
@@ -28,9 +28,9 @@ class OrganizerView(QWidget):
         self.header.setObjectName("HeaderLabel")
         self.lbl_info = QLabel(trans.t("no_file"))
         
-        self.lbl_hint = QLabel("Sıralamak için: Ctrl + Sol/Sağ ok tuşlarını (veya sağ tık menüsünü) kullanın.\nSilmek için: Delete tuşuna basın.")
+        self.lbl_hint = QLabel("• Döndürmek için: Sağ tık menüsü (90° Sağa/Sola)\n• Sıralamak için: Ctrl + Sol/Sağ Ok tuşları\n• Silmek için: Delete tuşu")
         self.lbl_hint.setWordWrap(True)
-        self.lbl_hint.setStyleSheet("color: #7f849c; font-size: 12px; margin-top: 10px;")
+        self.lbl_hint.setStyleSheet("color: #7f849c; font-size: 12px; margin-top: 10px; line-height: 1.4;")
         
         self.btn_save = QPushButton(trans.t("save"))
         self.btn_save.setObjectName("PrimaryBtn")
@@ -57,14 +57,18 @@ class OrganizerView(QWidget):
         if save_path:
             if not save_path.lower().endswith('.pdf'): save_path += '.pdf'
             if self.status_callback: self.status_callback(trans.t("loading"))
+            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
             try:
                 indices = self.grid.get_current_order()
-                split_pdf(self.current_pdf_path, save_path, indices)
+                rotations = self.grid.get_item_rotations()
+                split_pdf(self.current_pdf_path, save_path, indices, rotations)
                 QMessageBox.information(self, trans.t("success"), trans.t("saved"))
                 if self.status_callback: self.status_callback(trans.t("ready"))
             except Exception as e:
                 QMessageBox.critical(self, trans.t("error"), str(e))
                 if self.status_callback: self.status_callback(trans.t("error"))
+            finally:
+                QApplication.restoreOverrideCursor()
                 
     def update_texts(self):
         self.header.setText(trans.t("organizer"))
